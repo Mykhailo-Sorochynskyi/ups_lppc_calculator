@@ -82,11 +82,8 @@ import { BATTERY_MODELS, BATTERY_TECHNICAL_DATA } from "./data/batteries.js";
     const maxChargeTime = bankCapacity / Math.min(battery.chargeCurrentA, minUpsChargingCurrent);
 
     return {
-      status: numericRuntime > 200 ? "warning" : "success",
-      message:
-        numericRuntime > 200
-          ? "W arkuszu opisano czas powyżej 200 min jako bardzo długi. Wynik jest policzony, ale warto potwierdzić dobór z dostawcą."
-          : "",
+      status: "success",
+      message: "",
       ups,
       battery,
       metrics: {
@@ -190,7 +187,9 @@ import { BATTERY_MODELS, BATTERY_TECHNICAL_DATA } from "./data/batteries.js";
   function handleSubmit(event) {
     event.preventDefault();
     const power = document.querySelector("#power-input").value;
-    const runtime = document.querySelector("#runtime-input").value;
+    const hours = Number(document.querySelector("#runtime-hours-input").value) || 0;
+    const minutes = Number(document.querySelector("#runtime-minutes-input").value) || 0;
+    const runtime = hours * 60 + minutes;
     document.querySelector("#result-panel").hidden = false;
     document.querySelector("#feature-section").hidden = false;
     render(calculateSelection(power, runtime));
@@ -235,13 +234,22 @@ import { BATTERY_MODELS, BATTERY_TECHNICAL_DATA } from "./data/batteries.js";
 
   function setupFormFlow() {
     const powerInput = document.querySelector("#power-input");
-    const runtimeInput = document.querySelector("#runtime-input");
+    const runtimeHoursInput = document.querySelector("#runtime-hours-input");
+    const runtimeMinutesInput = document.querySelector("#runtime-minutes-input");
     const calculateButton = document.querySelector("#calculate-button");
 
     function canCalculate() {
       const power = Number(powerInput.value);
-      const runtime = Number(runtimeInput.value);
-      return Number.isFinite(power) && power > 0 && Number.isFinite(runtime) && runtime > 0;
+      const hours = Number(runtimeHoursInput.value) || 0;
+      const minutes = Number(runtimeMinutesInput.value) || 0;
+      const validDuration =
+        Number.isInteger(hours) &&
+        hours >= 0 &&
+        Number.isInteger(minutes) &&
+        minutes >= 0 &&
+        minutes <= 59 &&
+        hours * 60 + minutes > 0;
+      return Number.isFinite(power) && power > 0 && validDuration;
     }
 
     function syncCalculateButton() {
@@ -253,9 +261,11 @@ import { BATTERY_MODELS, BATTERY_TECHNICAL_DATA } from "./data/batteries.js";
       clearResults();
     });
 
-    runtimeInput.addEventListener("input", () => {
-      syncCalculateButton();
-      clearResults();
+    [runtimeHoursInput, runtimeMinutesInput].forEach((input) => {
+      input.addEventListener("input", () => {
+        syncCalculateButton();
+        clearResults();
+      });
     });
 
     syncCalculateButton();

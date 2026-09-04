@@ -21,14 +21,20 @@
             </span>
           </label>
 
-          <label class="field-card" data-step-card="2">
-            <span class="label">Wymagany czas podtrzymania</span>
+          <div class="field-card" data-step-card="2">
+            <span id="runtime-label" class="label">Wymagany czas podtrzymania</span>
             <span class="hint">Długi czas zwiększa koszt, czas ładowania i złożoność układu.</span>
-            <span class="input-row">
-              <input id="runtime-input" name="runtime" type="number" min="1" step="1" inputmode="decimal" />
-              <span>min</span>
-            </span>
-          </label>
+            <div class="duration-inputs" aria-labelledby="runtime-label">
+              <label class="duration-input">
+                <input id="runtime-hours-input" name="runtime-hours" type="number" min="0" step="1" inputmode="numeric" />
+                <span>godz.</span>
+              </label>
+              <label class="duration-input">
+                <input id="runtime-minutes-input" name="runtime-minutes" type="number" min="0" max="59" step="1" inputmode="numeric" />
+                <span>min</span>
+              </label>
+            </div>
+          </div>
 
           <button id="calculate-button" class="primary-action" type="submit" disabled>Oblicz dobór</button>
         </form>
