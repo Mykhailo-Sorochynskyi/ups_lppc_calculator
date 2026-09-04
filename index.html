@@ -57,55 +57,125 @@
             </article>
           </div>
           <div class="result-item">
-            <span class="result-label">Zalecany zestaw akumulatorów</span>
-            <article class="main-result">
+            <span class="result-label">Zalecany Akumulator</span>
+            <article class="main-result battery-result">
+              <img
+                class="battery-image"
+                src="assets/battery.png"
+                alt="Akumulator Green Cell AGM"
+              />
               <div class="battery-block">
-                <span class="value-label">Parametry układu</span>
-                <strong id="battery-layout">-</strong>
+                <strong id="battery-units">-</strong>
               </div>
-            <div class="battery-block">
-              <span class="value-label">Akumulatory</span>
-              <strong id="battery-units">-</strong>
-            </div>
-            <p class="battery-alternative" id="battery-alternative" hidden></p>
-          </article>
+            </article>
           </div>
         </div>
 
         <dl class="metrics">
           <div>
-            <dt>Moc czynna użyteczna</dt>
+            <dt>Maksymalne obciążenie</dt>
             <dd id="useful-power">-</dd>
-          </div>
-          <div>
-            <dt>Ilość pojedynczych akumulatorów 12 V</dt>
-            <dd id="battery-count">-</dd>
           </div>
           <div>
             <dt>Energia użyteczna DoD 80%</dt>
             <dd id="usable-energy">-</dd>
           </div>
           <div>
-            <dt>Czas podtrzymania przy pełnym obciążeniu UPS</dt>
-            <dd id="full-runtime">-</dd>
-          </div>
-          <div>
-            <dt>Minimalny czas ładowania</dt>
-            <dd id="charge-min">-</dd>
-          </div>
-          <div>
-            <dt>Maksymalny czas ładowania</dt>
-            <dd id="charge-max">-</dd>
-          </div>
-          <div>
-            <dt>Obciążalność UPS</dt>
-            <dd id="load-percent">-</dd>
+            <dt>Czas podtrzymania przy aktualnym obciążeniu</dt>
+            <dd id="current-runtime">-</dd>
           </div>
           <div>
             <dt>Sprawność</dt>
             <dd id="efficiency">-</dd>
           </div>
         </dl>
+
+        <details id="advanced-parameters" class="advanced-parameters">
+          <summary>Parametry zaawansowane</summary>
+          <dl class="metrics advanced-metrics">
+            <div>
+              <dt>Minimalny czas ładowania</dt>
+              <dd id="charge-min">-</dd>
+            </div>
+            <div>
+              <dt>Maksymalny czas ładowania</dt>
+              <dd id="charge-max">-</dd>
+            </div>
+            <div>
+              <dt>Obciążalność UPS</dt>
+              <dd id="load-percent">-</dd>
+            </div>
+            <div>
+              <dt>Ilość pojedynczych akumulatorów 12 V</dt>
+              <dd id="battery-count">-</dd>
+            </div>
+            <div>
+              <dt>Czas podtrzymania przy maksymalnym obciążeniu</dt>
+              <dd id="full-runtime">-</dd>
+            </div>
+          </dl>
+
+          <section class="charging-section">
+            <div class="charging-intro">
+              <h2>Wybór prądu ładowania</h2>
+              <p>Zaleca się wybrać prąd ładowania zgodnie z poniższą tabelą.</p>
+            </div>
+
+            <div class="charging-grid">
+              <article class="charging-card">
+                <h3>UPSLPPC500 / UPSLPPC1200</h3>
+                <div class="charging-table" role="table" aria-label="Prądy ładowania dla UPSLPPC500 i UPSLPPC1200">
+                  <div role="row" class="table-head">
+                    <span role="columnheader">Pojemność akumulatorów</span>
+                    <span role="columnheader">Poziom</span>
+                    <span role="columnheader">Prąd ładowania</span>
+                  </div>
+                  <div role="row">
+                    <span role="cell">20 Ah - 45 Ah</span>
+                    <span role="cell">L</span>
+                    <span role="cell">Niski, 3 A - 6 A</span>
+                  </div>
+                  <div role="row">
+                    <span role="cell">50 Ah - 100 Ah</span>
+                    <span role="cell">M</span>
+                    <span role="cell">Średni, 7 A - 9 A</span>
+                  </div>
+                  <div role="row">
+                    <span role="cell">100 Ah - 200 Ah</span>
+                    <span role="cell">H</span>
+                    <span role="cell">Wysoki, 11 A - 14 A</span>
+                  </div>
+                </div>
+              </article>
+
+              <article class="charging-card">
+                <h3>UPSLPPC800 / UPSLPPC1000</h3>
+                <div class="charging-table" role="table" aria-label="Prądy ładowania dla UPSLPPC800 i UPSLPPC1000">
+                  <div role="row" class="table-head">
+                    <span role="columnheader">Pojemność akumulatorów</span>
+                    <span role="columnheader">Poziom</span>
+                    <span role="columnheader">Prąd ładowania</span>
+                  </div>
+                  <div role="row">
+                    <span role="cell">20 Ah - 45 Ah</span>
+                    <span role="cell">L</span>
+                    <span role="cell">Niski, 4 A - 7 A</span>
+                  </div>
+                  <div role="row">
+                    <span role="cell">50 Ah - 100 Ah</span>
+                    <span role="cell">M</span>
+                    <span role="cell">Średni, 8 A - 12 A</span>
+                  </div>
+                  <div role="row">
+                    <span role="cell">100 Ah - 200 Ah</span>
+                    <span role="cell">H</span>
+                    <span role="cell">Wysoki, 15 A - 19 A</span>
+                  </div>
+                </div>
+              </article>
+            </div>
+          </section>
+        </details>
       </section>
 
       <section id="feature-section" class="feature-section" hidden>
@@ -183,66 +253,6 @@
         </div>
       </section>
 
-      <section id="charging-section" class="charging-section" hidden>
-        <div class="charging-intro">
-          <h2>Wybór prądu ładowania</h2>
-          <p>Zaleca się wybrać prąd ładowania zgodnie z poniższą tabelą.</p>
-        </div>
-
-        <div class="charging-grid">
-          <article class="charging-card">
-            <h3>UPSLPPC500 / UPSLPPC1200</h3>
-            <div class="charging-table" role="table" aria-label="Prądy ładowania dla UPSLPPC500 i UPSLPPC1200">
-              <div role="row" class="table-head">
-                <span role="columnheader">Pojemność akumulatorów</span>
-                <span role="columnheader">Poziom</span>
-                <span role="columnheader">Prąd ładowania</span>
-              </div>
-              <div role="row">
-                <span role="cell">20 Ah - 45 Ah</span>
-                <span role="cell">L</span>
-                <span role="cell">Niski, 3 A - 6 A</span>
-              </div>
-              <div role="row">
-                <span role="cell">50 Ah - 100 Ah</span>
-                <span role="cell">M</span>
-                <span role="cell">Średni, 7 A - 9 A</span>
-              </div>
-              <div role="row">
-                <span role="cell">100 Ah - 200 Ah</span>
-                <span role="cell">H</span>
-                <span role="cell">Wysoki, 11 A - 14 A</span>
-              </div>
-            </div>
-          </article>
-
-          <article class="charging-card">
-            <h3>UPSLPPC800 / UPSLPPC1000</h3>
-            <div class="charging-table" role="table" aria-label="Prądy ładowania dla UPSLPPC800 i UPSLPPC1000">
-              <div role="row" class="table-head">
-                <span role="columnheader">Pojemność akumulatorów</span>
-                <span role="columnheader">Poziom</span>
-                <span role="columnheader">Prąd ładowania</span>
-              </div>
-              <div role="row">
-                <span role="cell">20 Ah - 45 Ah</span>
-                <span role="cell">L</span>
-                <span role="cell">Niski, 4 A - 7 A</span>
-              </div>
-              <div role="row">
-                <span role="cell">50 Ah - 100 Ah</span>
-                <span role="cell">M</span>
-                <span role="cell">Średni, 8 A - 12 A</span>
-              </div>
-              <div role="row">
-                <span role="cell">100 Ah - 200 Ah</span>
-                <span role="cell">H</span>
-                <span role="cell">Wysoki, 15 A - 19 A</span>
-              </div>
-            </div>
-          </article>
-        </div>
-      </section>
     </main>
 
     <script type="module" src="app.js"></script>

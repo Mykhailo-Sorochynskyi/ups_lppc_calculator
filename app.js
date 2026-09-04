@@ -1,107 +1,28 @@
+import { UPS_DATABASE } from "./data/ups.js";
+import { BATTERY_MODELS, BATTERY_TECHNICAL_DATA } from "./data/batteries.js";
+
 (function () {
-  const UPS_DATABASE = [
-    {
-      sku: "UPSLPPC500",
-      name: "GC UPS PowerCore AVR 500W (800VA) 12 VDC z wyświetlaczem LCD",
-      systemVoltage: 12,
-      activePower: 500,
-      apparentPower: 800,
-      minCurrents: [3, 7, 11],
-      maxCurrents: [6, 9, 14],
-      efficiency: 0.95,
-    },
-    {
-      sku: "UPSLPPC800",
-      name: "GC UPS PowerCore AVR 800W (1200VA) 12 VDC z wyświetlaczem LCD",
-      systemVoltage: 12,
-      activePower: 800,
-      apparentPower: 1200,
-      minCurrents: [4, 8, 15],
-      maxCurrents: [7, 12, 19],
-      efficiency: 0.95,
-    },
-    {
-      sku: "UPSLPPC1000",
-      name: "GC UPS PowerCore AVR 1000W (1500VA) 12 VDC z wyświetlaczem LCD",
-      systemVoltage: 12,
-      activePower: 1000,
-      apparentPower: 1500,
-      minCurrents: [4, 8, 15],
-      maxCurrents: [7, 12, 19],
-      efficiency: 0.95,
-    },
-    {
-      sku: "UPSLPPC1200",
-      name: "GC UPS PowerCore AVR 1200W (2000VA) 24 VDC z wyświetlaczem LCD",
-      systemVoltage: 24,
-      activePower: 1200,
-      apparentPower: 2000,
-      minCurrents: [3, 7, 11],
-      maxCurrents: [6, 9, 14],
-      efficiency: 0.95,
-    },
-  ];
-
-  const BATTERY_MODELS = [
-    ["AGM04", 7],
-    ["AGM05", 7.2],
-    ["AGM46", 8],
-    ["AGM47", 8.5],
-    ["AGM06", 9],
-    ["AGM48", 10],
-    ["AGM50", 10],
-    ["AGM07", 12],
-    ["AGM08", 14],
-    ["AGM53", 15],
-    ["AGM51", 17],
-    ["AGM09", 18],
-    ["AGM10", 20],
-    ["AGM54", 22],
-    ["AGM35", 26],
-    ["AGM55", 28],
-    ["AGM21", 33],
-    ["AGM22", 40],
-    ["AGM12V40AH-J", 40],
-    ["AGM23", 44],
-    ["AGM56", 50],
-    ["AGM49", 55],
-    ["AGM12V55AH-J", 55],
-    ["AGM28", 65],
-    ["AGM25", 75],
-    ["AGM12V75AH-J", 75],
-    ["AGM57", 80],
-    ["AGM26", 84],
-    ["AGM29", 90],
-    ["AGM12V90AH-J", 90],
-    ["AGM30", 100],
-    ["AGM58", 110],
-    ["AGM31", 120],
-    ["AGM32", 150],
-    ["AGM60", 180],
-    ["AGM33", 200],
-  ];
-
-  const AGM_DATABASE = [1, 2].flatMap((series) =>
-    BATTERY_MODELS.map(([sku, capacityAh]) => {
-      const parallel = Math.ceil(20 / capacityAh);
+  const AGM_DATABASE = BATTERY_TECHNICAL_DATA.supportedSeries.flatMap((series) =>
+    BATTERY_MODELS.map(({ sku, capacityAh }) => {
+      const parallel = Math.ceil(BATTERY_TECHNICAL_DATA.minBankCapacityAh / capacityAh);
       const bankCapacityAh = round(capacityAh * parallel, 3);
-      const systemVoltage = 12 * series;
+      const systemVoltage = BATTERY_TECHNICAL_DATA.singleVoltage * series;
       const nominalEnergyWh = round(capacityAh * systemVoltage * parallel, 3);
       return {
         sku,
-        singleVoltage: 12,
+        singleVoltage: BATTERY_TECHNICAL_DATA.singleVoltage,
         capacityAh,
         bankCapacityAh,
         systemVoltage,
-        chargeVoltage: 14.4 * series,
-        dischargeVoltage: 9.6 * series,
+        chargeVoltage: BATTERY_TECHNICAL_DATA.chargeVoltagePerBattery * series,
+        dischargeVoltage: BATTERY_TECHNICAL_DATA.dischargeVoltagePerBattery * series,
         nominalEnergyWh,
-        usableEnergyWh: round(nominalEnergyWh * 0.8, 3),
-        dischargeCurrentA: round(capacityAh * 0.3, 3),
-        chargeCurrentA: round(capacityAh * 0.2, 3),
+        usableEnergyWh: round(nominalEnergyWh * BATTERY_TECHNICAL_DATA.usableEnergyFactor, 3),
+        dischargeCurrentA: round(capacityAh * BATTERY_TECHNICAL_DATA.dischargeCurrentFactor, 3),
+        chargeCurrentA: round(capacityAh * BATTERY_TECHNICAL_DATA.chargeCurrentFactor, 3),
         parallel,
         series,
-        stock: 1000,
+        stock: BATTERY_TECHNICAL_DATA.defaultStock,
       };
     })
   );
@@ -136,8 +57,8 @@
     const battery = AGM_DATABASE.filter(
       (item) =>
         item.systemVoltage === ups.systemVoltage &&
-        item.bankCapacityAh >= 20 &&
-        item.bankCapacityAh <= 200 &&
+        item.bankCapacityAh >= BATTERY_TECHNICAL_DATA.minBankCapacityAh &&
+        item.bankCapacityAh <= BATTERY_TECHNICAL_DATA.maxBankCapacityAh &&
         item.stock >= item.parallel * item.series &&
         item.usableEnergyWh >= requiredBatteryEnergy
     ).sort((a, b) => {
@@ -168,11 +89,11 @@
           : "",
       ups,
       battery,
-      batteryAlternatives: findBatteryAlternatives(battery),
       metrics: {
         usefulPower: Math.round(ups.usefulPower),
         batteryCount: batteryCount(battery),
         usableEnergy: battery.usableEnergyWh,
+        currentRuntime: Math.round((battery.usableEnergyWh * ups.efficiency * 60) / numericPower),
         fullRuntime: Math.round((battery.usableEnergyWh * ups.efficiency * 60) / ups.usefulPower),
         minChargeTime: round(minChargeTime, 1),
         maxChargeTime: round(maxChargeTime, 1),
@@ -197,26 +118,11 @@
   function batteryUnits(battery) {
     if (!battery) return "brak";
     const count = batteryCount(battery);
-    return `${count} x GC AGM 12V; ${formatPlain(battery.capacityAh)} Ah`;
+    return `${count} x ${battery.sku} — GC AGM 12V; ${formatPlain(battery.capacityAh)} Ah`;
   }
 
   function batteryCount(battery) {
     return battery.series * battery.parallel;
-  }
-
-  function findBatteryAlternatives(selectedBattery) {
-    if (!selectedBattery) return [];
-    const alternatives = AGM_DATABASE.filter(
-      (item) =>
-        item !== selectedBattery &&
-        item.systemVoltage === selectedBattery.systemVoltage &&
-        item.bankCapacityAh === selectedBattery.bankCapacityAh &&
-        item.nominalEnergyWh === selectedBattery.nominalEnergyWh &&
-        batteryCount(item) !== batteryCount(selectedBattery)
-    )
-      .sort((a, b) => batteryCount(a) - batteryCount(b))
-      .map((item) => `${batteryLayout(item)} (${batteryUnits(item)})`);
-    return [...new Set(alternatives)];
   }
 
   function round(value, decimals) {
@@ -234,6 +140,14 @@
       maximumFractionDigits: Number.isInteger(value) ? 0 : 1,
     }).format(value);
     return unit ? `${formatted} ${unit}` : formatted;
+  }
+
+  function formatDuration(totalMinutes) {
+    if (totalMinutes === undefined || totalMinutes === null || Number.isNaN(totalMinutes)) return "-";
+    const roundedMinutes = Math.max(0, Math.round(totalMinutes));
+    const hours = Math.floor(roundedMinutes / 60);
+    const minutes = roundedMinutes % 60;
+    return hours > 0 ? `${hours} godz. ${minutes} min` : `${minutes} min`;
   }
 
   function render(result) {
@@ -256,24 +170,17 @@
       status.textContent = "";
     }
 
-    const upsName = result.ups ? result.ups.name : "brak";
-    const selectedBatteryLayout = result.battery ? batteryLayout(result.battery) : "brak";
+    const upsName = result.ups ? `${result.ups.sku} — ${result.ups.name}` : "brak";
     const selectedBatteryUnits = result.battery ? batteryUnits(result.battery) : "brak";
-    const alternatives = result.batteryAlternatives || [];
     document.querySelector("#ups-name").textContent = upsName;
-    document.querySelector("#battery-layout").textContent = selectedBatteryLayout;
     document.querySelector("#battery-units").textContent = selectedBatteryUnits;
-    const batteryAlternative = document.querySelector("#battery-alternative");
-    batteryAlternative.hidden = alternatives.length === 0;
-    batteryAlternative.textContent = alternatives.length
-      ? `*Możliwy również układ: ${alternatives.join("; ")}`
-      : "";
 
     const metrics = result.metrics || {};
     document.querySelector("#useful-power").textContent = formatNumber(metrics.usefulPower, "W");
     document.querySelector("#battery-count").textContent = formatNumber(metrics.batteryCount, "szt.");
     document.querySelector("#usable-energy").textContent = formatNumber(metrics.usableEnergy, "Wh");
-    document.querySelector("#full-runtime").textContent = formatNumber(metrics.fullRuntime, "min");
+    document.querySelector("#current-runtime").textContent = formatDuration(metrics.currentRuntime);
+    document.querySelector("#full-runtime").textContent = formatDuration(metrics.fullRuntime);
     document.querySelector("#charge-min").textContent = formatNumber(metrics.minChargeTime, "h");
     document.querySelector("#charge-max").textContent = formatNumber(metrics.maxChargeTime, "h");
     document.querySelector("#load-percent").textContent = formatNumber(metrics.loadPercent, "%");
@@ -286,7 +193,6 @@
     const runtime = document.querySelector("#runtime-input").value;
     document.querySelector("#result-panel").hidden = false;
     document.querySelector("#feature-section").hidden = false;
-    document.querySelector("#charging-section").hidden = false;
     render(calculateSelection(power, runtime));
   }
 
@@ -297,13 +203,13 @@
     if (resultPanel) {
       resultPanel.hidden = true;
     }
+    const advancedParameters = document.querySelector("#advanced-parameters");
+    if (advancedParameters) {
+      advancedParameters.removeAttribute("open");
+    }
     const featureSection = document.querySelector("#feature-section");
     if (featureSection) {
       featureSection.hidden = true;
-    }
-    const chargingSection = document.querySelector("#charging-section");
-    if (chargingSection) {
-      chargingSection.hidden = true;
     }
     status.className = "status-pill";
     status.textContent = "";
@@ -312,12 +218,11 @@
     message.textContent = "";
     [
       "#ups-name",
-      "#battery-layout",
       "#battery-units",
-      "#battery-alternative",
       "#useful-power",
       "#battery-count",
       "#usable-energy",
+      "#current-runtime",
       "#full-runtime",
       "#charge-min",
       "#charge-max",
@@ -326,8 +231,6 @@
     ].forEach((selector) => {
       document.querySelector(selector).textContent = "-";
     });
-    document.querySelector("#battery-alternative").hidden = true;
-    document.querySelector("#battery-alternative").textContent = "";
   }
 
   function setupFormFlow() {
@@ -364,7 +267,7 @@
     batteryLayout,
     batteryUnits,
     batteryCount,
-    findBatteryAlternatives,
+    formatDuration,
     UPS_DATABASE,
     AGM_DATABASE,
   };
