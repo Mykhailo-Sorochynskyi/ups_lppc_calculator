@@ -32,12 +32,12 @@ test("każdy generalUse ma podpowiedź professionalUse i typicalLoads", () => {
 
 test("zdjęcia UPS są przypisane do właściwych rodzin SKU", () => {
   const bySku = (sku) => UPS_DATABASE.find((ups) => ups.sku === sku);
-  assert.equal(resolveUpsImage(bySku("UPS01LCD")), "/assets/images/ups-powerproof.png");
-  assert.equal(resolveUpsImage(bySku("UPS06")), "/assets/images/ups-aio.png");
-  assert.equal(resolveUpsImage(bySku("UPS07")), "/assets/images/ups-aio.png");
-  assert.equal(resolveUpsImage(bySku("UPSLP1050")), "/assets/images/ups-lp.png");
-  assert.equal(resolveUpsImage(bySku("UPSLM1200")), "/assets/images/ups-lm.png");
-  assert.equal(resolveUpsImage(bySku("UPS13")), "/assets/images/ups-rtii.png");
+  assert.equal(resolveUpsImage(bySku("UPS01LCD")), "./assets/images/ups-powerproof.png");
+  assert.equal(resolveUpsImage(bySku("UPS06")), "./assets/images/ups-aio.png");
+  assert.equal(resolveUpsImage(bySku("UPS07")), "./assets/images/ups-aio.png");
+  assert.equal(resolveUpsImage(bySku("UPSLP1050")), "./assets/images/ups-lp.png");
+  assert.equal(resolveUpsImage(bySku("UPSLM1200")), "./assets/images/ups-lm.png");
+  assert.equal(resolveUpsImage(bySku("UPS13")), "./assets/images/ups-rtii.png");
   assert.match(resolveUpsImage(bySku("UPSLPPC500")), /^https:\/\//);
 });
 
