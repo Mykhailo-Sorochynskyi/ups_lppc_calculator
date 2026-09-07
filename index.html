@@ -4,26 +4,32 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Kalkulator doboru UPS</title>
-    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="ui/styles.css" />
   </head>
   <body>
     <main>
       <section class="hero">
         <form id="calculator-form" class="calculator" autocomplete="off" aria-labelledby="page-title">
-          <p id="page-title" class="eyebrow calculator-title">Kalkulator doboru UPS LPPC</p>
+          <p id="page-title" class="eyebrow calculator-title">Kalkulator doboru UPS</p>
 
-          <label class="field-card" data-step-card="1">
-            <span class="label">Moc czynna urządzeń krytycznych</span>
-            <span class="hint">Suma mocy odbiorników, które ma obsłużyć UPS.</span>
+          <div class="field-card application-fieldset" data-step-card="1" role="group" aria-labelledby="application-label">
+            <span id="application-label" class="label">1. Wybierz zastosowanie</span>
+            <span class="hint">Zaznacz jedno ogólne zastosowanie. Szczegóły zobaczysz po wskazaniu lub naciśnięciu „?”.</span>
+            <div id="application-options" class="application-options"></div>
+          </div>
+
+          <label class="field-card" data-step-card="2">
+            <span class="label">2. Podaj łączną moc odbiorników</span>
+            <span class="hint">Wpisz sumę mocy czynnej wszystkich urządzeń, które mają pracować z UPS-em.</span>
             <span class="input-row">
               <input id="power-input" name="power" type="number" min="1" step="1" inputmode="decimal" />
               <span>W</span>
             </span>
           </label>
 
-          <div class="field-card" data-step-card="2">
-            <span id="runtime-label" class="label">Wymagany czas podtrzymania</span>
-            <span class="hint">Długi czas zwiększa koszt, czas ładowania i złożoność układu.</span>
+          <div class="field-card" data-step-card="3">
+            <span id="runtime-label" class="label">3. Podaj wymagany czas podtrzymania</span>
+            <span class="hint">Dłuższy wymagany czas zwiększa koszt, czas ładowania i złożoność układu.</span>
             <div class="duration-inputs" aria-labelledby="runtime-label">
               <label class="duration-input">
                 <input id="runtime-hours-input" name="runtime-hours" type="number" min="0" step="1" inputmode="numeric" />
@@ -37,22 +43,23 @@
           </div>
 
           <button id="calculate-button" class="primary-action" type="submit" disabled>Oblicz dobór</button>
+          <p id="no-solution-message" class="no-solution-message" role="status" hidden></p>
         </form>
       </section>
 
       <section id="result-panel" class="result-panel" aria-live="polite" hidden>
         <div class="result-header">
           <h2>Parametry dobranego układu</h2>
-          <span id="status-pill" class="status-pill" hidden>Uzupełnij dane</span>
         </div>
 
-        <div id="message-box" class="message-box" hidden></div>
+        <p id="powercore-recommendation" class="powercore-recommendation" hidden></p>
 
         <div class="result-grid">
           <div class="result-item">
-            <span class="result-label">Zalecany UPS</span>
+            <span id="ups-result-label" class="result-label">Zalecany UPS</span>
             <article class="main-result ups-result">
               <img
+                id="ups-image"
                 class="ups-image"
                 src="https://greencell.global/72475-thickbox_default/greencell-zasilacz-awaryjny-avr-ups-800va-500w-powercore-12-vdc-z-wyswietlaczem-lcd.jpg"
                 alt="Green Cell PowerCore UPS"
@@ -62,12 +69,12 @@
               </div>
             </article>
           </div>
-          <div class="result-item">
-            <span class="result-label">Zalecany Akumulator</span>
+          <div id="battery-result-item" class="result-item">
+            <span id="battery-result-label" class="result-label">Zalecany układ akumulatorów zewnętrznych</span>
             <article class="main-result battery-result">
               <img
                 class="battery-image"
-                src="assets/battery.png"
+                src="/assets/images/battery.png"
                 alt="Akumulator Green Cell AGM"
               />
               <div class="battery-block">
@@ -79,188 +86,110 @@
 
         <dl class="metrics">
           <div>
-            <dt>Maksymalne obciążenie</dt>
-            <dd id="useful-power">-</dd>
+            <dt>Obciążenie UPS</dt>
+            <dd id="ups-load-percent">-</dd>
           </div>
           <div>
-            <dt>Energia użyteczna DoD 80%</dt>
-            <dd id="usable-energy">-</dd>
+            <dt>Obciążenie maksymalne</dt>
+            <dd id="maximum-load">-</dd>
           </div>
           <div>
-            <dt>Czas podtrzymania przy aktualnym obciążeniu</dt>
-            <dd id="current-runtime">-</dd>
+            <dt>Szacowany czas podtrzymania przy 25°C</dt>
+            <dd id="estimated-runtime">-</dd>
           </div>
           <div>
-            <dt>Sprawność</dt>
-            <dd id="efficiency">-</dd>
+            <dt>Energia użyteczna</dt>
+            <dd id="main-usable-energy">-</dd>
           </div>
         </dl>
 
+        <aside id="cable-safety-card" class="cable-safety-card" aria-labelledby="cable-safety-heading" hidden>
+          <img class="cable-safety-image" src="/assets/images/battery-cables.png" alt="Przykładowe czerwone i czarne przewody do układu akumulatorów" />
+          <div class="cable-safety-copy">
+            <span class="cable-warning-badge">Wymagane właściwe przewody</span>
+            <h2 id="cable-safety-heading">Przewody do podłączenia układu akumulatorów</h2>
+            <p id="cable-selection-summary"></p>
+            <p>Przewody muszą mieć odpowiedni przekrój, obciążalność prądową, długość oraz końcówki pasujące do zacisków UPS i akumulatorów. <strong>Połączenie powinno zostać wykonane przez wykwalifikowaną osobę.</strong></p>
+          </div>
+        </aside>
+
         <details id="advanced-parameters" class="advanced-parameters">
-          <summary>Parametry zaawansowane</summary>
+          <summary>Więcej parametrów</summary>
           <dl class="metrics advanced-metrics">
             <div>
-              <dt>Minimalny czas ładowania</dt>
-              <dd id="charge-min">-</dd>
+              <dt>Szacowany czas podtrzymania przy maksymalnym obciążeniu (25°C)</dt>
+              <dd id="maximum-load-runtime">-</dd>
+            </div>
+            <div>
+              <dt>Konfiguracja układu akumulatorów</dt>
+              <dd id="bank-configuration">-</dd>
+            </div>
+            <div>
+              <dt>Maksymalna moc ładowania układu akumulatorów</dt>
+              <dd id="maximum-charge-power">-</dd>
+            </div>
+            <div>
+              <dt>Maksymalna ciągła moc rozładowania układu akumulatorów</dt>
+              <dd id="maximum-discharge-power">-</dd>
+            </div>
+            <div>
+              <dt>Maksymalny prąd ładowania układu akumulatorów</dt>
+              <dd id="maximum-charge-current">-</dd>
+            </div>
+            <div>
+              <dt>Maksymalny prąd rozładowania układu akumulatorów</dt>
+              <dd id="maximum-discharge-current">-</dd>
             </div>
             <div>
               <dt>Maksymalny czas ładowania</dt>
-              <dd id="charge-max">-</dd>
+              <dd id="maximum-charge-time">-</dd>
             </div>
             <div>
-              <dt>Obciążalność UPS</dt>
-              <dd id="load-percent">-</dd>
+              <dt>Parametry układu akumulatorów</dt>
+              <dd id="battery-system-parameters">-</dd>
             </div>
             <div>
-              <dt>Ilość pojedynczych akumulatorów 12 V</dt>
-              <dd id="battery-count">-</dd>
+              <dt>Energia nominalna układu akumulatorów</dt>
+              <dd id="nominal-energy">-</dd>
             </div>
             <div>
-              <dt>Czas podtrzymania przy maksymalnym obciążeniu</dt>
-              <dd id="full-runtime">-</dd>
+              <dt>Typ zastosowanego kabla</dt>
+              <dd id="cable-type">-</dd>
+            </div>
+            <div>
+              <dt>Specyfikacja kabla</dt>
+              <dd id="cable-specification">-</dd>
+            </div>
+            <div>
+              <dt>Minimalna wymagana obciążalność prądowa kabla</dt>
+              <dd id="cable-current-rating">-</dd>
             </div>
           </dl>
 
-          <section class="charging-section">
+          <section id="charging-section" class="charging-section" aria-labelledby="charging-heading" hidden>
             <div class="charging-intro">
-              <h2>Wybór prądu ładowania</h2>
-              <p>Zaleca się wybrać prąd ładowania zgodnie z poniższą tabelą.</p>
+              <h2 id="charging-heading">Selektor prądu ładowania</h2>
+              <p>Selektor określa zakres prądu, którym UPS ładuje zewnętrzny układ akumulatorów. Właściwy poziom jest automatycznie dopasowany do pojemności układu, aby zapewnić prawidłowe i bezpieczne ładowanie.</p>
             </div>
-
-            <div class="charging-grid">
-              <article class="charging-card">
-                <h3>UPSLPPC500 / UPSLPPC1200</h3>
-                <div class="charging-table" role="table" aria-label="Prądy ładowania dla UPSLPPC500 i UPSLPPC1200">
-                  <div role="row" class="table-head">
-                    <span role="columnheader">Pojemność akumulatorów</span>
-                    <span role="columnheader">Poziom</span>
-                    <span role="columnheader">Prąd ładowania</span>
-                  </div>
-                  <div role="row">
-                    <span role="cell">20 Ah - 45 Ah</span>
-                    <span role="cell">L</span>
-                    <span role="cell">Niski, 3 A - 6 A</span>
-                  </div>
-                  <div role="row">
-                    <span role="cell">50 Ah - 100 Ah</span>
-                    <span role="cell">M</span>
-                    <span role="cell">Średni, 7 A - 9 A</span>
-                  </div>
-                  <div role="row">
-                    <span role="cell">100 Ah - 200 Ah</span>
-                    <span role="cell">H</span>
-                    <span role="cell">Wysoki, 11 A - 14 A</span>
-                  </div>
-                </div>
-              </article>
-
-              <article class="charging-card">
-                <h3>UPSLPPC800 / UPSLPPC1000</h3>
-                <div class="charging-table" role="table" aria-label="Prądy ładowania dla UPSLPPC800 i UPSLPPC1000">
-                  <div role="row" class="table-head">
-                    <span role="columnheader">Pojemność akumulatorów</span>
-                    <span role="columnheader">Poziom</span>
-                    <span role="columnheader">Prąd ładowania</span>
-                  </div>
-                  <div role="row">
-                    <span role="cell">20 Ah - 45 Ah</span>
-                    <span role="cell">L</span>
-                    <span role="cell">Niski, 4 A - 7 A</span>
-                  </div>
-                  <div role="row">
-                    <span role="cell">50 Ah - 100 Ah</span>
-                    <span role="cell">M</span>
-                    <span role="cell">Średni, 8 A - 12 A</span>
-                  </div>
-                  <div role="row">
-                    <span role="cell">100 Ah - 200 Ah</span>
-                    <span role="cell">H</span>
-                    <span role="cell">Wysoki, 15 A - 19 A</span>
-                  </div>
-                </div>
-              </article>
+            <div class="charging-table-wrap">
+              <table class="charging-table">
+                <thead>
+                  <tr>
+                    <th scope="col">Model</th>
+                    <th scope="col">Pojemność układu akumulatorów</th>
+                    <th scope="col">Poziom</th>
+                    <th scope="col">Prąd ładowania</th>
+                  </tr>
+                </thead>
+                <tbody id="charging-options"></tbody>
+              </table>
             </div>
           </section>
         </details>
       </section>
 
-      <section id="feature-section" class="feature-section" hidden>
-        <div class="feature-grid">
-          <article class="feature-card dark">
-            <div class="icon-row">
-              <svg viewBox="0 0 48 48" aria-hidden="true">
-                <rect x="4" y="4" width="40" height="40" rx="12"></rect>
-                <path d="M11 27c4 0 3-13 8-13s4 20 10 20 5-13 10-13"></path>
-              </svg>
-            </div>
-            <div class="feature-copy">
-              <h3>Ochrona zasilania</h3>
-              <p>Podtrzymuje pracę urządzeń przy zaniku zasilania i skokach napięcia.</p>
-            </div>
-          </article>
-
-          <article class="feature-card mint">
-            <div class="icon-row">
-              <svg viewBox="0 0 48 48" aria-hidden="true">
-                <rect x="5" y="5" width="38" height="38" rx="10"></rect>
-                <path d="M14 14h18v7H14zM14 24h20v10H14zM18 18h8M18 28h8M30 28h4"></path>
-              </svg>
-            </div>
-            <div class="feature-copy">
-              <h3>Zewnętrzny AGM</h3>
-              <p>Pojemność akumulatorów dobierana jest do wymaganej mocy i czasu pracy.</p>
-            </div>
-          </article>
-
-          <article class="feature-card dark">
-            <div class="icon-row triple">
-              <svg viewBox="0 0 48 48" aria-hidden="true">
-                <rect x="4" y="4" width="40" height="40" rx="12"></rect>
-                <path d="M17 31c4-4-3-6 1-10M25 31c4-4-3-6 1-10M33 31c4-4-3-6 1-10"></path>
-              </svg>
-              <svg viewBox="0 0 48 48" aria-hidden="true">
-                <rect x="4" y="4" width="40" height="40" rx="10"></rect>
-                <circle cx="17" cy="20" r="4"></circle>
-                <circle cx="25" cy="28" r="4"></circle>
-                <circle cx="32" cy="20" r="4"></circle>
-                <path d="M14 34h22M14 13h22"></path>
-              </svg>
-              <svg viewBox="0 0 48 48" aria-hidden="true">
-                <rect x="7" y="4" width="30" height="40" rx="4"></rect>
-                <path d="M15 12h14M15 20h14M15 28h6M27 28h2M15 34h6M27 34h2"></path>
-              </svg>
-            </div>
-            <div class="feature-copy">
-              <h3>Do trudnych zastosowań</h3>
-              <p>Sprawdza się przy piecach CO, pompach ciepła i sprzęcie technicznym.</p>
-            </div>
-          </article>
-
-          <article class="feature-card mint">
-            <div class="icon-row triple">
-              <svg viewBox="0 0 48 48" aria-hidden="true">
-                <rect x="4" y="10" width="40" height="28" rx="10"></rect>
-                <path d="M15 22h5v5h-5zM25 22h5v5h-5zM34 22h2"></path>
-              </svg>
-              <svg viewBox="0 0 48 48" aria-hidden="true">
-                <rect x="9" y="5" width="30" height="38" rx="5"></rect>
-                <path d="M17 13h14M17 32h14M18 18h12v8H18z"></path>
-              </svg>
-              <svg viewBox="0 0 48 48" aria-hidden="true">
-                <rect x="4" y="4" width="40" height="40" rx="12"></rect>
-                <path d="M14 27c6 0 6-9 12-9s6 9 12 9"></path>
-              </svg>
-            </div>
-            <div class="feature-copy">
-              <h3>Solidny zestaw</h3>
-              <p>Czytelny wyświetlacz, trwała obudowa i wytrzymałe przewody.</p>
-            </div>
-          </article>
-        </div>
-      </section>
-
     </main>
 
-    <script type="module" src="app.js"></script>
+    <script type="module" src="ui/app.js"></script>
   </body>
 </html>
